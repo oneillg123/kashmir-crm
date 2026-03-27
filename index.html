@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kashmir — CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c0d;--surface:#141416;--surface2:#1c1c1f;--surface3:#242428;
+  --border:#272729;--border2:#38383e;
+  --text:#e6e6ea;--muted:#64646e;--muted2:#4a4a54;
+  --accent:#c8f060;--accent-dim:rgba(200,240,96,.10);
+  --red:#f87171;--red-bg:#2d1414;
+  --yellow:#fbbf24;--yellow-bg:#2d2000;
+  --green:#4ade80;--green-bg:#0f2d1a;
+  --blue:#60a5fa;--blue-bg:#0f1e3a;
+  --purple:#c084fc;--purple-bg:#1e0f3a;
+  --teal:#34d399;--teal-bg:#0f2a22;
+  --orange:#fb923c;--orange-bg:#2d1a0f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;overflow:hidden}
+.app{display:flex;height:100vh}
+
+/* ─── SIDEBAR ─── */
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sb-brand{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.sb-eye{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.sb-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em}
+.sb-name span{color:var(--accent)}
+.role-pill{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:10px;cursor:pointer;transition:all .1s}
+.role-pill:hover{border-color:var(--accent);color:var(--accent)}
+.role-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.nav-sec{padding:12px 10px 4px}
+.nav-lbl{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:12px;transition:all .1s;border:none;background:none;width:100%;text-align:left;font-family:'DM Mono',monospace}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-dim);color:var(--accent)}
+.nav-icon{font-size:13px;width:16px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--surface3);border-radius:10px;padding:1px 7px;font-size:10px;color:var(--muted)}
+.nav-item.active .nav-badge{background:var(--accent-dim);color:var(--accent)}
+.sb-bottom{margin-top:auto;padding:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.save-status{font-size:9px;text-align:center;color:var(--muted);min-height:14px}
+
+/* ─── MAIN ─── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.page{display:none;flex:1;flex-direction:column;overflow:hidden}
+.page.active{display:flex}
+.topbar{padding:16px 28px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.scroll{flex:1;overflow-y:auto;padding:24px 28px}
+.scroll::-webkit-scrollbar{width:4px}
+.scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ─── GLOBAL SEARCH ─── */
+.global-search-wrap{flex:1;max-width:380px;position:relative}
+.global-search-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 34px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .15s}
+.global-search-wrap input:focus{border-color:var(--border2)}
+.global-search-wrap input::placeholder{color:var(--muted)}
+.gs-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.gs-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;z-index:100;max-height:320px;overflow-y:auto;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.gs-results.open{display:block}
+.gs-group{padding:8px 0}
+.gs-group-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted2);padding:4px 14px 6px}
+.gs-item{padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .07s}
+.gs-item:hover{background:var(--surface2)}
+.gs-item-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:600}
+.gs-item-sub{font-size:10px;color:var(--muted)}
+.gs-type{font-size:9px;padding:2px 6px;border-radius:3px;background:var(--surface3);color:var(--muted2);margin-left:auto;flex-shrink:0}
+
+/* ─── BUTTONS ─── */
+.btn{padding:7px 16px;border-radius:6px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;border:none;transition:all .1s;letter-spacing:.04em}
+.btn-ghost{background:none;border:1px solid var(--border2);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-accent{background:var(--accent);color:#0c0c0d;font-weight:700}
+.btn-accent:hover{opacity:.88}
+.btn-danger{background:none;border:1px solid var(--red-bg);color:var(--red)}
+.btn-danger:hover{background:var(--red-bg)}
+.btn-sm{padding:5px 12px;font-size:10px}
+.btn-xs{padding:3px 8px;font-size:10px}
+
+/* ─── BADGES ─── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;white-space:nowrap}
+.b-prospect{background:var(--surface3);color:var(--muted)}
+.b-contacted{background:var(--blue-bg);color:var(--blue)}
+.b-negotiating{background:var(--yellow-bg);color:var(--yellow)}
+.b-confirmed{background:var(--green-bg);color:var(--green)}
+.b-cancelled{background:var(--red-bg);color:var(--red)}
+.b-past{background:var(--surface3);color:var(--muted)}
+.b-upcoming{background:var(--green-bg);color:var(--green)}
+.b-draft{background:var(--yellow-bg);color:var(--yellow)}
+.b-headliner{background:var(--purple-bg);color:var(--purple)}
+.b-opener{background:var(--blue-bg);color:var(--blue)}
+.b-flexible{background:var(--teal-bg);color:var(--teal)}
+.b-unassigned{background:var(--surface3);color:var(--muted)}
+.b-open{background:var(--yellow-bg);color:var(--yellow);border:1px dashed rgba(251,191,36,.4)}
+.b-paid{background:var(--green-bg);color:var(--green)}
+.b-unpaid{background:var(--red-bg);color:var(--red)}
+.b-partial{background:var(--yellow-bg);color:var(--yellow)}
+.b-waived{background:var(--surface3);color:var(--muted)}
+.b-owner{background:var(--accent-dim);color:var(--accent)}
+.b-manager{background:var(--blue-bg);color:var(--blue)}
+.b-readonly{background:var(--surface3);color:var(--muted)}
+
+/* ─── INLINE EDIT ─── */
+.editable{cursor:pointer;border-radius:4px;padding:1px 4px;margin:-1px -4px;transition:background .1s;position:relative}
+.editable:hover{background:var(--surface3)}
+.editable:hover::after{content:'✎';font-size:9px;color:var(--muted);margin-left:5px;vertical-align:middle}
+.editable.editing{background:transparent}
+.editable.editing::after{display:none}
+.inline-input{background:var(--surface2);border:1px solid var(--accent);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:inherit;padding:2px 6px;outline:none;width:100%;min-width:60px}
+.inline-select{background:var(--surface2);border:1px solid var(--accent);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:inherit;padding:2px 6px;outline:none;cursor:pointer}
+.inline-select option{background:var(--surface2)}
+
+/* ─── DASHBOARD ─── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+.stat-card.accent-border{border-left:3px solid var(--accent)}
+.sc-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+.sc-label{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.sc-sub{font-size:11px;color:var(--muted);margin-top:6px}
+.sc-accent{color:var(--accent)}
+.sc-red{color:var(--red)}
+.sc-yellow{color:var(--yellow)}
+.dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.dash-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.dash-sec-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.dash-sec-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
+.dash-sec-link{font-size:10px;color:var(--muted);cursor:pointer;text-decoration:none}
+.dash-sec-link:hover{color:var(--accent)}
+.dash-item{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .07s}
+.dash-item:last-child{border-bottom:none}
+.dash-item:hover{background:var(--surface2)}
+.dash-item-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;flex:1}
+.dash-item-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.dash-action{font-size:10px;color:var(--accent);font-weight:600}
+.next-night{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:24px}
+.nn-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.nn-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.01em}
+.nn-date{font-size:12px;color:var(--muted);margin-top:3px}
+.nn-slots{display:flex;gap:10px;flex-wrap:wrap}
+.nn-slot{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 14px;min-width:130px}
+.nn-slot-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.nn-slot-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
+.nn-slot.open-slot{border-color:rgba(251,191,36,.4);background:var(--yellow-bg)}
+.nn-slot.open-slot .nn-slot-name{color:var(--yellow)}
+.nn-divider{width:1px;background:var(--border);align-self:stretch;flex-shrink:0}
+
+/* ─── NIGHTS ─── */
+.nights-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.night-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .1s,transform .1s;position:relative}
+.night-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.night-card.upcoming{border-left:3px solid var(--accent)}
+.night-card.past{border-left:3px solid var(--muted2);opacity:.75}
+.night-card.draft{border-left:3px solid var(--yellow)}
+.nc-head{padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.nc-date{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.nc-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.nc-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.nc-body{padding:12px 16px}
+.nc-slot{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+.nc-slot:last-child{border-bottom:none}
+.nc-slot-tag{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:68px}
+.nc-slot-name{font-family:'Syne',sans-serif;font-weight:600;flex:1}
+.nc-slot-fee{font-size:10px;color:var(--accent)}
+.nc-slot.is-open .nc-slot-name{color:var(--yellow)}
+.nc-actions{position:absolute;top:10px;right:10px;display:none;gap:4px}
+.night-card:hover .nc-actions{display:flex}
+.add-night-card{background:var(--surface);border:1px dashed var(--border2);border-radius:10px;padding:50px 20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;gap:8px;transition:all .1s}
+.add-night-card:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+
+/* ─── NIGHT DETAIL (full page overlay) ─── */
+.night-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column}
+.night-overlay.open{display:flex}
+.no-header{padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-shrink:0}
+.no-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800}
+.no-date{color:var(--muted);font-size:11px}
+.no-body{flex:1;display:flex;overflow:hidden}
+.no-main{flex:1;overflow-y:auto;padding:28px 32px}
+.no-main::-webkit-scrollbar{width:4px}
+.no-main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.no-sidebar{width:280px;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:20px}
+.no-sec{margin-bottom:28px}
+.no-sec-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.lane-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.lane-card.filled{border-color:var(--border2)}
+.lane-card.open-lane{border-color:rgba(251,191,36,.4)}
+.lane-card.drag-over{border-color:var(--accent);background:var(--accent-dim)}
+.lane-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.lane-tag{font-family:'Syne',sans-serif;font-size:14px;font-weight:800}
+.lane-time{font-size:11px;color:var(--muted)}
+.lane-body{padding:14px 16px;min-height:90px;display:flex;align-items:center}
+.lane-empty{color:var(--muted2);font-size:12px;text-align:center;width:100%;padding:14px 0;border:1px dashed var(--border2);border-radius:7px}
+.artist-lane-card{width:100%;display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;cursor:grab}
+.artist-lane-card:hover{border-color:var(--accent)}
+.artist-lane-card:active{cursor:grabbing}
+.alc-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;flex:1}
+.alc-rep{font-size:10px;color:var(--muted);margin-top:2px}
+.alc-fields{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.alc-field{display:flex;flex-direction:column;gap:2px}
+.alc-field label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2)}
+.alc-field-val{font-size:12px}
+.open-lane-card{width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--yellow-bg);border:1px dashed rgba(251,191,36,.3);border-radius:8px}
+
+/* ─── GUEST LIST ─── */
+.gl-table{width:100%;border-collapse:collapse}
+.gl-table th{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:400}
+.gl-table td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px}
+.gl-table tr:last-child td{border-bottom:none}
+.gl-table tr:hover td{background:var(--surface2)}
+.gl-add-row{display:flex;gap:8px;margin-top:12px}
+.gl-add-row input,.gl-add-row select{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;flex:1}
+.gl-add-row input:focus,.gl-add-row select:focus{border-color:var(--border2)}
+
+/* ─── INTAKE FORM MOCK ─── */
+.intake-mock{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;max-width:480px}
+.intake-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px}
+.intake-sub{font-size:11px;color:var(--muted);margin-bottom:20px}
+.intake-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.intake-field label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.intake-field input,.intake-field select{background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:9px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none}
+.intake-field input:focus,.intake-field select:focus{border-color:var(--accent)}
+.intake-note{font-size:10px;color:var(--muted2);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* ─── PAYMENT SUMMARY ─── */
+.pay-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px}
+.pay-row:last-child{border-bottom:none}
+.pay-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:600}
+.pay-amount{font-size:14px;font-weight:600}
+.pay-total{display:flex;justify-content:space-between;align-items:center;padding:14px 0 0;margin-top:4px;border-top:2px solid var(--border2)}
+.pay-total-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.pay-total-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)}
+
+/* ─── ROSTER ─── */
+.toolbar{padding:10px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.search-wrap{position:relative}
+.search-wrap input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px 6px 30px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;width:240px}
+.search-wrap input:focus{border-color:var(--border2)}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:13px}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{padding:4px 11px;border-radius:20px;font-size:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .1s;font-family:'DM Mono',monospace}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.table-wrap{overflow-x:auto}
+table.roster-tbl{width:100%;border-collapse:separate;border-spacing:0}
+table.roster-tbl thead th{padding:8px 12px;text-align:left;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;font-weight:400}
+table.roster-tbl thead th:hover{color:var(--text)}
+table.roster-tbl tbody tr{cursor:pointer;transition:background .07s}
+table.roster-tbl tbody tr:hover{background:var(--surface2)}
+table.roster-tbl tbody tr:hover .col-name{color:var(--accent)}
+table.roster-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+.col-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;transition:color .1s}
+.col-dim{color:var(--muted);font-size:12px}
+.pips{display:inline-flex;gap:3px;align-items:center}
+.pip{width:7px;height:7px;border-radius:50%;background:var(--border2);display:inline-block}
+.pip.on{background:var(--green)}
+
+/* ─── ARTIST DRAWER ─── */
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;backdrop-filter:blur(3px)}
+.drawer-overlay.open{display:block}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:520px;background:var(--surface);border-left:1px solid var(--border2);display:flex;flex-direction:column;z-index:301;transform:translateX(100%);transition:transform .22s cubic-bezier(.4,0,.2,1)}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:20px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between}
+.drawer-name{font-family:'Syne',sans-serif;font-size:19px;font-weight:800}
+.drawer-close{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px}
+.drawer-close:hover{color:var(--text);border-color:var(--text)}
+.drawer-scroll{flex:1;overflow-y:auto;padding:20px 24px}
+.drawer-scroll::-webkit-scrollbar{width:4px}
+.drawer-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.drawer-footer{padding:12px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;align-items:center}
+.stat-pills{display:flex;gap:10px;margin-bottom:18px}
+.stat-pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;flex:1}
+.sp-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--accent)}
+.sp-label{font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.1em}
+.fsec{margin-bottom:20px}
+.fsec-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f{display:flex;flex-direction:column;gap:4px}
+.f.full{grid-column:1/-1}
+.f label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.f input,.f select,.f textarea{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;width:100%;transition:border-color .1s}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--border2)}
+.f select option{background:var(--surface2)}
+.f textarea{resize:vertical;min-height:64px}
+.history-tbl{width:100%;border-collapse:collapse}
+.history-tbl th{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:5px 9px;text-align:left;border-bottom:1px solid var(--border);font-weight:400}
+.history-tbl td{padding:7px 9px;border-bottom:1px solid var(--border);font-size:11px}
+.history-tbl tr:last-child td{border-bottom:none}
+.history-tbl tr:hover td{background:var(--surface2)}
+
+/* ─── MODALS ─── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:480px;max-width:95vw;animation:popIn .16s ease}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(6px)}to{opacity:1;transform:scale(1)}}
+.modal-head{padding:18px 22px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.modal-body{padding:18px 22px}
+.modal-foot{padding:13px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;flex-direction:column;gap:4px}
+.mf.full{grid-column:1/-1}
+.mf label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mf input,.mf select,.mf textarea{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;width:100%}
+.mf input:focus,.mf select:focus{border-color:var(--border2)}
+.mf select option{background:var(--surface2)}
+.mf textarea{resize:vertical;min-height:60px}
+.rating-input{display:flex;gap:4px}
+.star{font-size:16px;cursor:pointer;color:var(--border2);transition:color .1s}
+.star.on{color:var(--accent)}
+
+/* ─── ROLE MODAL ─── */
+.role-option{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--border);margin-bottom:8px;transition:all .1s}
+.role-option:hover{border-color:var(--border2);background:var(--surface2)}
+.role-option.selected{border-color:var(--accent);background:var(--accent-dim)}
+.role-icon{font-size:20px;width:32px;text-align:center}
+.role-info{flex:1}
+.role-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.role-desc{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ─── UNSCHED PANEL ─── */
+.unsched-panel{width:210px;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column}
+.unsched-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.unsched-title{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.unsched-count{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.unsched-search{margin:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:6px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;width:calc(100% - 20px)}
+.unsched-search::placeholder{color:var(--muted)}
+.unsched-list{flex:1;overflow-y:auto;padding:0 8px 10px}
+.unsched-list::-webkit-scrollbar{width:3px}
+.unsched-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.unsched-item{padding:7px 9px;border-radius:5px;margin-bottom:4px;cursor:grab;border:1px solid var(--border);background:var(--surface2);transition:border-color .1s,transform .08s;user-select:none}
+.unsched-item:hover{border-color:var(--border2);transform:translateX(2px)}
+.unsched-item:active{cursor:grabbing;opacity:.7}
+.ui-name{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;margin-bottom:2px}
+.ui-meta{font-size:10px;color:var(--muted)}
+
+/* ─── CONFIRM ─── */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:28px;width:340px;text-align:center}
+.confirm-box p{color:var(--muted);font-size:12px;margin:8px 0 20px}
+
+/* ─── TASKS ─── */
+.tasks-list{display:flex;flex-direction:column;gap:6px}
+.task-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;transition:border-color .1s}
+.task-item:hover{border-color:var(--border2)}
+.task-item.done{opacity:.4}
+.task-check{width:16px;height:16px;border-radius:4px;border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .1s;font-size:10px;color:var(--green)}
+.task-check:hover{border-color:var(--accent)}
+.task-item.done .task-check{background:var(--green-bg);border-color:var(--green)}
+.task-body{flex:1;min-width:0}
+.task-title{font-size:12px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-item.done .task-title{text-decoration:line-through;color:var(--muted)}
+.task-sub{font-size:10px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-eye">Booking CRM</div>
+    <div class="sb-name">Kash<span>mir</span></div>
+    <div class="role-pill" onclick="openRoleModal()">
+      <div class="role-dot"></div>
+      <span id="role-label">Owner</span>
+    </div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Views</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)">
+      <span class="nav-icon">⬡</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('nights',this)">
+      <span class="nav-icon">◷</span> Nights
+      <span class="nav-badge" id="nb-nights">0</span>
+    </button>
+    <button class="nav-item" onclick="showPage('roster',this)">
+      <span class="nav-icon">◈</span> Roster
+      <span class="nav-badge" id="nb-roster">107</span>
+    </button>
+    <button class="nav-item" onclick="showPage('tasks',this)">
+      <span class="nav-icon">◻</span> Tasks
+      <span class="nav-badge" id="nb-tasks"></span>
+    </button>
+  </div>
+  <div class="sb-bottom">
+    <button class="btn btn-accent" style="width:100%;font-size:11px" onclick="saveData()">💾 Save + Backup</button>
+    <button class="btn btn-ghost" style="width:100%;font-size:11px" onclick="loadData()">↑ Restore Backup</button>
+    <button class="btn btn-ghost" style="width:100%;font-size:11px" onclick="exportCSV()">↓ Export CSV</button>
+    <div class="save-status" id="save-status"></div>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+<!-- ─── DASHBOARD ─── -->
+<div class="page active" id="page-dashboard">
+  <div class="topbar">
+    <div class="page-title">Dashboard</div>
+    <div class="topbar-right">
+      <div class="global-search-wrap">
+        <span class="gs-icon">⌕</span>
+        <input type="text" id="global-search" placeholder="Search artists, nights, guests…" oninput="globalSearch(this.value)" onblur="setTimeout(()=>closeGlobalSearch(),200)">
+        <div class="gs-results" id="gs-results"></div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll" id="dash-scroll">
+    <div id="dash-content"></div>
+  </div>
+</div>
+
+<!-- ─── NIGHTS ─── -->
+<div class="page" id="page-nights">
+  <div class="topbar">
+    <div class="page-title">Nights</div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="filterNights('all')" id="nf-all">All</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterNights('upcoming')" id="nf-upcoming">Upcoming</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterNights('past')" id="nf-past">Past</button>
+      <button class="btn btn-accent" onclick="openNewNight()">+ New Night</button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="nights-grid" id="nights-grid"></div>
+  </div>
+</div>
+
+<!-- ─── ROSTER ─── -->
+<div class="page" id="page-roster">
+  <div class="topbar">
+    <div class="page-title">Artist Roster</div>
+    <div class="topbar-right">
+      <button class="btn btn-accent" onclick="openNewArtist()">+ Add Artist</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="roster-search" placeholder="Search artists, reps…" oninput="renderRoster()">
+    </div>
+    <div class="chips">
+      <span class="chip active" onclick="setFilter('status','all',this)">All</span>
+      <span class="chip" onclick="setFilter('status','Prospect',this)">Prospect</span>
+      <span class="chip" onclick="setFilter('status','Contacted',this)">Contacted</span>
+      <span class="chip" onclick="setFilter('status','Negotiating',this)">Negotiating</span>
+      <span class="chip" onclick="setFilter('status','Confirmed',this)">Confirmed</span>
+      <span class="chip" onclick="setFilter('status','Cancelled',this)">Cancelled</span>
+    </div>
+    <div class="chips" style="margin-left:auto">
+      <span class="chip active" onclick="setFilter('slot','all',this)">All Slots</span>
+      <span class="chip" onclick="setFilter('slot','Headliner',this)">Headliner</span>
+      <span class="chip" onclick="setFilter('slot','Opener',this)">Opener</span>
+      <span class="chip" onclick="setFilter('slot','Flexible',this)">Flexible</span>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="table-wrap">
+      <table class="roster-tbl">
+        <thead><tr>
+          <th onclick="sortBy('name')">Artist</th>
+          <th onclick="sortBy('timeslot')">Slot</th>
+          <th onclick="sortBy('status')">Status</th>
+          <th>Rep / Agent</th>
+          <th>Owner</th>
+          <th>History</th>
+          <th onclick="sortBy('lastPlayed')">Last Played</th>
+          <th onclick="sortBy('timesPlayed')">Times</th>
+          <th onclick="sortBy('totalPaid')" id="col-totalpaid">Total Paid</th>
+          <th>IG</th>
+          <th>Contact</th>
+        </tr></thead>
+        <tbody id="roster-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TASKS ─── -->
+<div class="page" id="page-tasks">
+  <div class="topbar">
+    <div class="page-title">Open Tasks</div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="toggleDone(this)">Show Done</button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="tasks-list" id="tasks-list"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══ NIGHT DETAIL OVERLAY ═══ -->
+<div class="night-overlay" id="night-overlay">
+  <div class="no-header">
+    <button class="btn btn-ghost btn-sm" onclick="closeNightOverlay()">← Back</button>
+    <div style="flex:1">
+      <div class="no-title" id="no-title"></div>
+      <div class="no-date" id="no-date"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="openEditNight(currentNightId)">Edit Details</button>
+      <button class="btn btn-accent btn-sm" onclick="saveNightOverlay()">Save Night</button>
+    </div>
+  </div>
+  <div class="no-body">
+    <div class="no-main" id="no-main"></div>
+    <div class="unsched-panel">
+      <div class="unsched-header">
+        <span class="unsched-title">Artists</span>
+        <span class="unsched-count" id="unsched-count">0</span>
+      </div>
+      <input class="unsched-search" id="unsched-search" placeholder="Filter…" oninput="renderUnsched()">
+      <div class="unsched-list" id="unsched-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ARTIST DRAWER ═══ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-name" id="drawer-name"></div>
+      <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap" id="drawer-badges"></div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-scroll" id="drawer-body"></div>
+  <div class="drawer-footer">
+    <button class="btn btn-danger btn-sm" onclick="deleteArtist()">Delete</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveDrawer()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NIGHT MODAL ═══ -->
+<div class="modal-overlay" id="night-modal" onclick="if(event.target===this)closeNightModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="nm-title">New Night</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeNightModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mgrid">
+        <div class="mf full"><label>Night Name</label><input id="nm-name" placeholder="Kashmir Night — March 2026"></div>
+        <div class="mf"><label>Date</label><input id="nm-date" type="date"></div>
+        <div class="mf"><label>Status</label>
+          <select id="nm-status">
+            <option value="draft">Draft</option>
+            <option value="upcoming" selected>Upcoming</option>
+            <option value="past">Past</option>
+          </select>
+        </div>
+        <div class="mf full"><label>Notes</label><textarea id="nm-notes" placeholder="Theme, capacity, anything special…"></textarea></div>
+        <div class="mf full"><label>Cover / Ticket ($)</label><input id="nm-cover" type="text" placeholder="0"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="nm-delete-btn" onclick="deleteNightFromModal()" style="display:none;margin-right:auto">Delete Night</button>
+      <button class="btn btn-ghost" onclick="closeNightModal()">Cancel</button>
+      <button class="btn btn-accent" id="nm-save-btn" onclick="saveNightModal()">Create Night →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PERF / PAYMENT MODAL ═══ -->
+<div class="modal-overlay" id="perf-modal" onclick="if(event.target===this)closePerfModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="pm-title">Performance Details</div>
+      <button class="btn btn-ghost btn-sm" onclick="closePerfModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mgrid">
+        <div class="mf full"><label>Fee Paid ($)</label><input id="pm-fee" type="text" placeholder="0"></div>
+        <div class="mf full"><label>Payment Status</label>
+          <select id="pm-pay">
+            <option value="Unpaid">Unpaid</option>
+            <option value="Partial">Partial</option>
+            <option value="Paid">Paid</option>
+            <option value="Waived">Waived</option>
+          </select>
+        </div>
+        <div class="mf full"><label>Rating</label>
+          <div class="rating-input" id="pm-stars">
+            <span class="star" data-v="1" onclick="setRating(1)">★</span>
+            <span class="star" data-v="2" onclick="setRating(2)">★</span>
+            <span class="star" data-v="3" onclick="setRating(3)">★</span>
+            <span class="star" data-v="4" onclick="setRating(4)">★</span>
+            <span class="star" data-v="5" onclick="setRating(5)">★</span>
+          </div>
+        </div>
+        <div class="mf full"><label>Notes</label><textarea id="pm-note" placeholder="How did the set go?"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closePerfModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="savePerfModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ROLE MODAL ═══ -->
+<div class="modal-overlay" id="role-modal" onclick="if(event.target===this)closeRoleModal()">
+  <div class="modal" style="width:400px">
+    <div class="modal-head">
+      <div class="modal-title">Switch Role</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeRoleModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:16px">In production this will use real authentication. For now, switch views to see what each role sees.</div>
+      <div class="role-option" onclick="setRole('owner')" id="role-opt-owner">
+        <div class="role-icon">👑</div>
+        <div class="role-info">
+          <div class="role-name">Owner</div>
+          <div class="role-desc">Full access — payments, deletes, all settings</div>
+        </div>
+      </div>
+      <div class="role-option" onclick="setRole('manager')" id="role-opt-manager">
+        <div class="role-icon">🎛️</div>
+        <div class="role-info">
+          <div class="role-name">Manager</div>
+          <div class="role-desc">Can edit nights, lineup, guest list — no payment data</div>
+        </div>
+      </div>
+      <div class="role-option" onclick="setRole('readonly')" id="role-opt-readonly">
+        <div class="role-icon">👁️</div>
+        <div class="role-info">
+          <div class="role-name">Read Only</div>
+          <div class="role-desc">View nights, roster, guest list — no editing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CONFIRM ═══ -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700" id="confirm-title">Are you sure?</div>
+    <p id="confirm-msg"></p>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn btn-ghost" onclick="confirmResolve(false)">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmResolve(true)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA MODEL
+// ══════════════════════════════════════════════
+const RAW_ARTISTS = [
+  ['Max Wagner','Flexible'],['Pinto','Headliner'],['Sophia George','Flexible'],
+  ['Deep State Disco 😈','Headliner'],['Merch','Headliner'],['Neiv','Flexible'],
+  ['Blair','Headliner'],['Kai Castro','Flexible'],['POPS','Headliner'],
+  ['Dame','Headliner'],['Subwuf','Headliner'],['PODS','Headliner'],
+  ['Santi','Opener'],['Mr. Charisma','Opener'],['Doc Double','Opener'],
+  ['Lech','Flexible'],['Capslock','Flexible'],['NABSS','Flexible'],
+  ['BRIFFEY','Headliner'],['Erik','Headliner'],['Jerome','Opener'],
+  ['Slnzz','Opener'],['Chester Fields','Flexible'],['Sleepy Eagz','Flexible'],
+  ['Alex Wolf','Flexible'],['Colin Push','Flexible'],['MADD','Flexible'],
+  ['Dr. Mar','Flexible'],['David Blk','Flexible'],['Side Project','Headliner'],
+  ['Amari','Headliner'],['Rami Dabura','Headliner'],['Avo','Headliner'],
+  ['Frechette','Flexible'],['Inphinity','Headliner'],['Tash','Flexible'],
+  ['Chava','Flexible'],['Fourth Co.','Headliner'],['Twan','Headliner'],
+  ['Hashtom','Headliner'],['Muffy','Flexible'],['BlueFox','Headliner'],
+  ['JL3','Flexible'],['So_Fi','Opener'],['Monty Kiddo','Headliner'],
+  ['FOKSE','Opener'],['Branzino Boys','Headliner'],['AireLoosh','Flexible'],
+  ['Jon Alfaro','Flexible'],['Jonji','Flexible'],['DB Stereo','Flexible'],
+  ['Zach Lazzarotto','Flexible'],['Deux Saints','Headliner'],['KHANH','Flexible'],
+  ['Protege','Headliner'],['Habibibeatz','Flexible'],['Heavy','Headliner'],
+  ['Michael Rags','Flexible'],['Moorhaus','Flexible'],['Dom Brown','Flexible'],
+  ['Alex Kislov','Headliner'],['Avina Brothers','Headliner'],['Dustin Sheridan','Flexible'],
+  ['Simone','Flexible'],['Virago','Flexible'],['Oogie x Phives','Headliner'],
+  ['MVRCO','Flexible'],['Mike Lang','Headliner'],['Zoumy','Headliner'],
+  ['NOLA','Flexible'],['Mayya','Flexible'],['XOVI','Flexible'],
+  ['TAB3R','Opener'],['Dezz','Flexible'],['Cody Schneida','Headliner'],
+  ['Meridian','Flexible'],['Jack Galactic','Flexible'],['Summermel','Headliner'],
+  ['Aboywithabag','Headliner'],['Nick C','Flexible'],['Des Fine','Flexible'],
+  ['Sol Echo','Flexible'],['Lee Reynolds','Headliner'],['Bop City','Flexible'],
+  ['Darth Vektor','Opener'],['Max Kennedy','Opener'],['Acxel','Flexible'],
+  ['Arsenio','Opener'],['Sam White','Flexible'],['Doc','Flexible'],
+  ['Xeibo','Flexible'],['Geo Smith','Flexible'],['Jaygee','Flexible'],
+  ['Eddie Adams','Flexible'],['Rika B','Flexible'],['Tommaso','Flexible'],
+  ['Tribe','Flexible'],['Pony & Blondie','Flexible'],['Arvi Mala','Flexible'],
+  ['Do Not Disturb','Flexible'],['Frank Bono','Flexible'],['Tazrin','Flexible'],
+  ['Full House','Headliner'],['Ryan Lee','Flexible'],['Teecogs','Flexible'],
+  ['Alec Nuckols','Flexible'],['Vinny Slicks','Flexible'],
+];
+
+let uid=0, nid=1000, sid=5000, gid=8000;
+let artists=[], nights=[], manualTasks=[];
+let showDone=false;
+let currentRole='owner'; // owner | manager | readonly
+let currentNightId=null;
+let nightSlots=[];
+let dragId=null, dragFromLane=null;
+let drawerAid=null;
+let editingNightId=null;
+let perfNightId=null, perfSlotId=null, perfRating=0;
+let confirmCb=null;
+let nightFilter='all';
+let rFilters={status:'all',slot:'all'};
+let rSort={col:'name',dir:1};
+
+const SLOT_DEFS={
+  opener:{label:'Opener',start:'10:00 PM',end:'12:00 AM'},
+  headliner:{label:'Headliner',start:'12:00 AM',end:'2:00 AM'},
+};
+const SAVE_KEY='kashmir_crm_v2';
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function fmtDate(d){
+  if(!d) return '—';
+  return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function daysUntil(d){
+  if(!d) return null;
+  const diff=new Date(d+'T12:00:00')-new Date();
+  return Math.ceil(diff/(1000*60*60*24));
+}
+function artistBookings(aid){
+  const b=[];
+  nights.forEach(n=>n.slots.forEach(sl=>{
+    if(!sl.isOpen&&sl.artistId===aid)
+      b.push({nId:n.id,slId:sl.id,nightName:n.name,date:n.date,fee:sl.fee||'',payment:sl.payment||'Unpaid',rating:sl.rating||0,perfNote:sl.perfNote||''});
+  }));
+  return b.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+function artistStats(aid){
+  const b=artistBookings(aid);
+  return{timesPlayed:b.length,lastPlayed:b[0]?.date||null,totalPaid:b.reduce((s,x)=>s+(parseFloat(x.fee)||0),0)};
+}
+function getSlotForLane(lane){return nightSlots.find(s=>s.lane===lane)||null;}
+function canEdit(){return currentRole!=='readonly';}
+function canSeePayments(){return currentRole==='owner';}
+
+function confirmDialog(title,msg){
+  return new Promise(res=>{
+    confirmCb=res;
+    document.getElementById('confirm-title').textContent=title;
+    document.getElementById('confirm-msg').textContent=msg;
+    document.getElementById('confirm-overlay').classList.add('open');
+  });
+}
+function confirmResolve(v){
+  document.getElementById('confirm-overlay').classList.remove('open');
+  if(confirmCb){confirmCb(v);confirmCb=null;}
+}
+
+function makeEditable(el,currentVal,type,opts,onSave){
+  if(!canEdit()||el.classList.contains('editing')) return;
+  el.classList.add('editing');
+  const orig=el.innerHTML;
+  let inp;
+  if(type==='select'){
+    inp=document.createElement('select');
+    inp.className='inline-select';
+    inp.onclick=e=>e.stopPropagation();
+    opts.forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;if(o===currentVal)opt.selected=true;inp.appendChild(opt);});
+    el.innerHTML='';el.appendChild(inp);inp.focus();
+    const done=()=>{onSave(inp.value);el.classList.remove('editing');};
+    inp.onchange=done;inp.onblur=done;
+  } else {
+    inp=document.createElement('input');
+    inp.className='inline-input';
+    inp.type=type==='date'?'date':'text';
+    inp.value=currentVal;
+    inp.onclick=e=>e.stopPropagation();
+    el.innerHTML='';el.appendChild(inp);inp.focus();inp.select();
+    const done=()=>{onSave(inp.value);el.classList.remove('editing');};
+    inp.onblur=done;
+    inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();done();}if(e.key==='Escape'){el.innerHTML=orig;el.classList.remove('editing');}};
+  }
+}
+
+// ══════════════════════════════════════════════
+// SAVE / LOAD / AUTOSAVE
+// ══════════════════════════════════════════════
+let autoSaveTimer=null;
+function scheduleAutoSave(){clearTimeout(autoSaveTimer);autoSaveTimer=setTimeout(_writeSave,800);}
+function _writeSave(){
+  try{
+    localStorage.setItem(SAVE_KEY,JSON.stringify({artists,nights,uid,nid,sid,gid,manualTasks}));
+    showSaveStatus('Auto-saved ✓');
+  }catch(e){showSaveStatus('Save failed');}
+}
+function saveData(){
+  _writeSave();
+  const blob=new Blob([JSON.stringify({artists,nights,uid,nid,sid,gid,manualTasks},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='Kashmir_CRM_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  URL.revokeObjectURL(url);
+  showSaveStatus('Saved + downloaded ✓');
+}
+function loadData(){
+  const input=document.createElement('input');
+  input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=evt=>{
+      try{
+        const p=JSON.parse(evt.target.result);
+        artists=p.artists||artists;nights=p.nights||nights;
+        uid=p.uid??uid;nid=p.nid??nid;sid=p.sid??sid;gid=p.gid??gid;
+        manualTasks=p.manualTasks||[];
+        _writeSave();
+        refreshAll();showSaveStatus('Loaded ✓');
+      }catch(err){alert('Could not read file.');}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+function showSaveStatus(msg){
+  const el=document.getElementById('save-status');if(!el)return;
+  el.textContent=msg;clearTimeout(el._t);el._t=setTimeout(()=>el.textContent='',3000);
+}
+
+// ══════════════════════════════════════════════
+// NAV + ROLE
+// ══════════════════════════════════════════════
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='dashboard')renderDashboard();
+  if(id==='nights')renderNights();
+  if(id==='roster')renderRoster();
+  if(id==='tasks')renderTasks();
+}
+
+function refreshAll(){renderDashboard();renderNights();renderRoster();renderTasks();updateBadges();}
+
+function updateBadges(){
+  document.getElementById('nb-roster').textContent=artists.length;
+  document.getElementById('nb-nights').textContent=nights.length;
+  const open=nights.reduce((s,n)=>s+n.slots.filter(sl=>sl.isOpen).length,0);
+  document.getElementById('nb-tasks').textContent=open||'';
+  // hide payments col for non-owners
+  const col=document.getElementById('col-totalpaid');
+  if(col) col.style.display=canSeePayments()?'':'none';
+}
+
+function openRoleModal(){
+  ['owner','manager','readonly'].forEach(r=>{
+    document.getElementById('role-opt-'+r).classList.toggle('selected',currentRole===r);
+  });
+  document.getElementById('role-modal').classList.add('open');
+}
+function closeRoleModal(){document.getElementById('role-modal').classList.remove('open');}
+function setRole(r){
+  currentRole=r;
+  document.getElementById('role-label').textContent=r.charAt(0).toUpperCase()+r.slice(1);
+  closeRoleModal();updateBadges();renderDashboard();renderNights();renderRoster();
+}
+
+// ══════════════════════════════════════════════
+// GLOBAL SEARCH
+// ══════════════════════════════════════════════
+function globalSearch(q){
+  const res=document.getElementById('gs-results');
+  if(!q.trim()){res.classList.remove('open');return;}
+  const lq=q.toLowerCase();
+  const artistHits=artists.filter(a=>a.name.toLowerCase().includes(lq)||a.ig.toLowerCase().includes(lq)||(a.repName||'').toLowerCase().includes(lq)).slice(0,5);
+  const nightHits=nights.filter(n=>n.name.toLowerCase().includes(lq)||fmtDate(n.date).toLowerCase().includes(lq)).slice(0,4);
+  const guestHits=[];
+  nights.forEach(n=>(n.guests||[]).forEach(g=>{if(g.name.toLowerCase().includes(lq))guestHits.push({...g,nightName:n.name,nightId:n.id});}));
+  if(!artistHits.length&&!nightHits.length&&!guestHits.length){
+    res.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">No results</div>';
+    res.classList.add('open');return;
+  }
+  let html='';
+  if(artistHits.length){
+    html+=`<div class="gs-group"><div class="gs-group-label">Artists</div>`;
+    html+=artistHits.map(a=>`<div class="gs-item" onclick="closeGlobalSearch();openDrawer(${a.id})">
+      <div><div class="gs-item-name">${a.name}</div><div class="gs-item-sub">${a.timeslot} · ${a.status}${a.repName?' · '+a.repName:''}</div></div>
+      <span class="gs-type">Artist</span></div>`).join('');
+    html+='</div>';
+  }
+  if(nightHits.length){
+    html+=`<div class="gs-group"><div class="gs-group-label">Nights</div>`;
+    html+=nightHits.map(n=>`<div class="gs-item" onclick="closeGlobalSearch();openNightOverlay('${n.id}')">
+      <div><div class="gs-item-name">${n.name}</div><div class="gs-item-sub">${fmtDate(n.date)} · ${n.status}</div></div>
+      <span class="gs-type">Night</span></div>`).join('');
+    html+='</div>';
+  }
+  if(guestHits.length){
+    html+=`<div class="gs-group"><div class="gs-group-label">Guests</div>`;
+    html+=guestHits.slice(0,4).map(g=>`<div class="gs-item" onclick="closeGlobalSearch();openNightOverlay('${g.nightId}')">
+      <div><div class="gs-item-name">${g.name}</div><div class="gs-item-sub">${g.nightName} · Party of ${g.count}</div></div>
+      <span class="gs-type">Guest</span></div>`).join('');
+    html+='</div>';
+  }
+  res.innerHTML=html;
+  res.classList.add('open');
+}
+function closeGlobalSearch(){
+  document.getElementById('gs-results').classList.remove('open');
+  document.getElementById('global-search').value='';
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard(){
+  const upcoming=nights.filter(n=>n.status==='upcoming').sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const next=upcoming[0]||null;
+  const totalUnpaid=canSeePayments()?nights.reduce((s,n)=>s+n.slots.reduce((ss,sl)=>ss+(sl.payment==='Unpaid'&&sl.fee?parseFloat(sl.fee)||0:0),0),0):null;
+  const openSlots=nights.filter(n=>n.status==='upcoming').reduce((s,n)=>s+n.slots.filter(sl=>sl.isOpen).length,0);
+  const totalGuests=nights.filter(n=>n.status==='upcoming').reduce((s,n)=>s+(n.guests||[]).reduce((gs,g)=>gs+(parseInt(g.count)||1),0),0);
+
+  let html='';
+
+  // Next night hero
+  if(next){
+    const du=daysUntil(next.date);
+    const slots=['opener','headliner'].map(lane=>{
+      const sl=next.slots.find(s=>s.lane===lane);
+      if(!sl) return `<div class="nn-slot open-lane"><div class="nn-slot-label">${SLOT_DEFS[lane].label}</div><div class="nn-slot-name" style="color:var(--muted2)">TBD</div></div>`;
+      if(sl.isOpen) return `<div class="nn-slot open-slot"><div class="nn-slot-label">${SLOT_DEFS[lane].label}</div><div class="nn-slot-name">Open Slot</div></div>`;
+      const ar=artists.find(a=>a.id===sl.artistId);
+      return `<div class="nn-slot"><div class="nn-slot-label">${SLOT_DEFS[lane].label}</div><div class="nn-slot-name">${ar?.name||'?'}</div></div>`;
+    }).join('');
+    html+=`<div class="next-night" onclick="openNightOverlay('${next.id}')" style="cursor:pointer">
+      <div><div class="nn-label">Next Night</div><div class="nn-name">${next.name}</div><div class="nn-date">${fmtDate(next.date)} · ${du===0?'Tonight':du===1?'Tomorrow':du+' days away'}</div></div>
+      <div class="nn-divider"></div>
+      <div class="nn-slots">${slots}</div>
+      <div style="margin-left:auto"><button class="btn btn-accent btn-sm">View Night →</button></div>
+    </div>`;
+  } else {
+    html+=`<div class="next-night" style="cursor:pointer" onclick="openNewNight()">
+      <div><div class="nn-label">No Upcoming Nights</div><div class="nn-name" style="color:var(--muted)">Create your first night</div></div>
+      <div style="margin-left:auto"><button class="btn btn-accent btn-sm">+ New Night</button></div>
+    </div>`;
+  }
+
+  // Stat cards
+  html+=`<div class="dash-grid">
+    <div class="stat-card accent-border">
+      <div class="sc-val sc-accent">${upcoming.length}</div>
+      <div class="sc-label">Upcoming Nights</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-val ${openSlots>0?'sc-yellow':'sc-accent'}">${openSlots}</div>
+      <div class="sc-label">Open Slots</div>
+      ${openSlots>0?`<div class="sc-sub" style="color:var(--yellow)">Needs booking</div>`:''}
+    </div>
+    <div class="stat-card">
+      <div class="sc-val">${totalGuests}</div>
+      <div class="sc-label">Guests on Lists</div>
+    </div>
+    ${canSeePayments()?`<div class="stat-card">
+      <div class="sc-val ${totalUnpaid>0?'sc-red':'sc-accent'}">$${(totalUnpaid||0).toLocaleString()}</div>
+      <div class="sc-label">Unpaid Fees</div>
+    </div>`:`<div class="stat-card"><div class="sc-val" style="color:var(--muted2)">—</div><div class="sc-label">Financials</div><div class="sc-sub">Owner access only</div></div>`}
+  </div>`;
+
+  // Two column: upcoming nights + recent action needed
+  const needAction=nights.filter(n=>n.status==='upcoming'&&n.slots.some(sl=>sl.isOpen));
+  const recentPast=[...nights].filter(n=>n.status==='past').sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
+
+  html+=`<div class="dash-cols">
+    <div class="dash-section">
+      <div class="dash-sec-head">
+        <div class="dash-sec-title">Upcoming Nights</div>
+        <a class="dash-sec-link" onclick="document.querySelector('.nav-item:nth-child(2)').click()">View all →</a>
+      </div>
+      ${upcoming.slice(0,5).map(n=>{
+        const du=daysUntil(n.date);
+        const gl=(n.guests||[]).reduce((s,g)=>s+(parseInt(g.count)||1),0);
+        return `<div class="dash-item" onclick="openNightOverlay('${n.id}')">
+          <div style="flex:1">
+            <div class="dash-item-name">${n.name}</div>
+            <div class="dash-item-sub">${fmtDate(n.date)} · ${gl} guests on list</div>
+          </div>
+          <span style="font-size:10px;color:${du<=3?'var(--yellow)':'var(--muted)'}">${du===0?'Tonight':du===1?'Tomorrow':du+'d'}</span>
+        </div>`;
+      }).join('')||'<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">No upcoming nights</div>'}
+    </div>
+    <div class="dash-section">
+      <div class="dash-sec-head">
+        <div class="dash-sec-title">Action Needed</div>
+      </div>
+      ${needAction.slice(0,5).map(n=>{
+        const open=n.slots.filter(sl=>sl.isOpen);
+        return `<div class="dash-item" onclick="openNightOverlay('${n.id}')">
+          <div style="flex:1">
+            <div class="dash-item-name">${n.name}</div>
+            <div class="dash-item-sub">${fmtDate(n.date)}</div>
+          </div>
+          <span class="badge b-open">${open.length} open slot${open.length>1?'s':''}</span>
+        </div>`;
+      }).join('')||'<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">All slots filled ✓</div>'}
+      ${canSeePayments()&&recentPast.length?`
+        <div style="padding:10px 18px 6px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);border-top:1px solid var(--border);margin-top:4px">Unpaid from past nights</div>
+        ${recentPast.filter(n=>n.slots.some(sl=>sl.payment==='Unpaid'&&sl.fee)).map(n=>`<div class="dash-item" onclick="openNightOverlay('${n.id}')">
+          <div style="flex:1"><div class="dash-item-name">${n.name}</div><div class="dash-item-sub">${fmtDate(n.date)}</div></div>
+          <span class="badge b-unpaid">Unpaid</span>
+        </div>`).join('')||''}
+      `:''}
+    </div>
+  </div>`;
+
+  document.getElementById('dash-content').innerHTML=html;
+}
+
+// ══════════════════════════════════════════════
+// NIGHTS PAGE
+// ══════════════════════════════════════════════
+function filterNights(f){
+  nightFilter=f;
+  ['all','upcoming','past'].forEach(x=>{
+    const btn=document.getElementById('nf-'+x);
+    if(btn) btn.className='btn btn-'+(f===x?'accent':'ghost')+' btn-sm';
+  });
+  renderNights();
+}
+
+function renderNights(){
+  let data=[...nights];
+  if(nightFilter==='upcoming') data=data.filter(n=>n.status==='upcoming'||n.status==='draft');
+  if(nightFilter==='past') data=data.filter(n=>n.status==='past');
+  data.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  document.getElementById('nights-grid').innerHTML=
+    (canEdit()?`<div class="add-night-card" onclick="openNewNight()">＋ New Night</div>`:'') +
+    data.map(n=>{
+      const slots=n.slots||[];
+      const filled=slots.filter(s=>!s.isOpen&&s.artistId!==null);
+      const open=slots.filter(s=>s.isOpen);
+      const gl=(n.guests||[]).reduce((s,g)=>s+(parseInt(g.count)||1),0);
+      return `<div class="night-card ${n.status}" onclick="openNightOverlay('${n.id}')">
+        <div class="nc-actions">
+          ${canEdit()?`<button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openEditNight('${n.id}')">Edit</button>`:''}
+        </div>
+        <div class="nc-head">
+          <div class="nc-date">${fmtDate(n.date)}</div>
+          <div class="nc-name">${n.name}</div>
+          <div class="nc-badges">
+            <span class="badge b-${n.status}">${n.status}</span>
+            ${filled.length?`<span class="badge b-confirmed">${filled.length} booked</span>`:''}
+            ${open.length?`<span class="badge b-open">${open.length} open</span>`:''}
+            ${gl?`<span class="badge b-contacted">${gl} guests</span>`:''}
+          </div>
+        </div>
+        <div class="nc-body">
+          ${['opener','headliner'].map(lane=>{
+            const sl=slots.find(s=>s.lane===lane);
+            const ar=sl&&!sl.isOpen?artists.find(a=>a.id===sl.artistId):null;
+            return `<div class="nc-slot ${sl?.isOpen?'is-open':''}">
+              <span class="nc-slot-tag">${SLOT_DEFS[lane].label}</span>
+              <span class="nc-slot-name">${sl?.isOpen?'Open Slot':ar?.name||'TBD'}</span>
+              ${ar&&canSeePayments()&&sl.fee?`<span class="nc-slot-fee">$${sl.fee}</span>`:''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+// ── Night modal ──
+function openNewNight(){
+  editingNightId=null;
+  document.getElementById('nm-title').textContent='New Night';
+  document.getElementById('nm-name').value='';
+  document.getElementById('nm-date').value='';
+  document.getElementById('nm-status').value='upcoming';
+  document.getElementById('nm-notes').value='';
+  document.getElementById('nm-cover').value='';
+  document.getElementById('nm-save-btn').textContent='Create Night →';
+  document.getElementById('nm-delete-btn').style.display='none';
+  document.getElementById('night-modal').classList.add('open');
+}
+function openEditNight(nId){
+  editingNightId=nId;
+  const n=nights.find(x=>x.id===nId);if(!n)return;
+  document.getElementById('nm-title').textContent='Edit Night';
+  document.getElementById('nm-name').value=n.name;
+  document.getElementById('nm-date').value=n.date||'';
+  document.getElementById('nm-status').value=n.status;
+  document.getElementById('nm-notes').value=n.notes||'';
+  document.getElementById('nm-cover').value=n.cover||'';
+  document.getElementById('nm-save-btn').textContent='Save Changes';
+  document.getElementById('nm-delete-btn').style.display='block';
+  document.getElementById('night-modal').classList.add('open');
+}
+function closeNightModal(){document.getElementById('night-modal').classList.remove('open');}
+function saveNightModal(){
+  const name=document.getElementById('nm-name').value.trim()||'Kashmir Night';
+  const date=document.getElementById('nm-date').value;
+  const status=document.getElementById('nm-status').value;
+  const notes=document.getElementById('nm-notes').value;
+  const cover=document.getElementById('nm-cover').value;
+  if(editingNightId){
+    const n=nights.find(x=>x.id===editingNightId);
+    Object.assign(n,{name,date,status,notes,cover});
+    closeNightModal();renderNights();renderDashboard();scheduleAutoSave();
+    // update overlay header if open
+    if(currentNightId===editingNightId){
+      document.getElementById('no-title').textContent=name;
+      document.getElementById('no-date').textContent=fmtDate(date);
+    }
+  } else {
+    const n={id:'n'+nid++,name,date,status,notes,cover,slots:[],guests:[]};
+    nights.push(n);
+    closeNightModal();scheduleAutoSave();openNightOverlay(n.id);
+  }
+}
+async function deleteNightFromModal(){
+  const n=nights.find(x=>x.id===editingNightId);
+  const ok=await confirmDialog('Delete Night',`Remove "${n?.name}"? This will delete all lineup and guest list data.`);
+  if(!ok)return;
+  nights=nights.filter(x=>x.id!==editingNightId);
+  closeNightModal();if(document.getElementById('night-overlay').classList.contains('open'))closeNightOverlay();
+  renderNights();renderDashboard();renderTasks();updateBadges();scheduleAutoSave();
+}
+
+// ══════════════════════════════════════════════
+// NIGHT DETAIL OVERLAY
+// ══════════════════════════════════════════════
+function openNightOverlay(nId){
+  currentNightId=nId;
+  const n=nights.find(x=>x.id===nId);if(!n)return;
+  nightSlots=n.slots.map(s=>({...s}));
+  document.getElementById('no-title').textContent=n.name;
+  document.getElementById('no-date').textContent=fmtDate(n.date)+(n.status!=='upcoming'?' · '+n.status:'');
+  renderNightMain();renderUnsched();
+  document.getElementById('night-overlay').classList.add('open');
+}
+function closeNightOverlay(){
+  document.getElementById('night-overlay').classList.remove('open');
+  currentNightId=null;nightSlots=[];
+}
+function saveNightOverlay(){
+  const n=nights.find(x=>x.id===currentNightId);
+  n.slots=nightSlots.map(s=>({...s}));
+  closeNightOverlay();renderNights();renderDashboard();renderTasks();updateBadges();scheduleAutoSave();
+}
+
+function renderNightMain(){
+  const n=nights.find(x=>x.id===currentNightId);if(!n)return;
+  const guests=n.guests||[];
+  const totalGuests=guests.reduce((s,g)=>s+(parseInt(g.count)||1),0);
+
+  let html=``;
+
+  // ─ Lineup section
+  html+=`<div class="no-sec">
+    <div class="no-sec-title">Lineup</div>
+    ${renderLaneHTML('opener')}
+    ${renderLaneHTML('headliner')}
+  </div>`;
+
+  // ─ Payment summary (owner only)
+  if(canSeePayments()){
+    const paySlots=nightSlots.filter(s=>!s.isOpen&&s.artistId!==null);
+    const totalFee=paySlots.reduce((s,sl)=>s+(parseFloat(sl.fee)||0),0);
+    const totalPaid=paySlots.filter(s=>s.payment==='Paid').reduce((s,sl)=>s+(parseFloat(sl.fee)||0),0);
+    html+=`<div class="no-sec">
+      <div class="no-sec-title">Payments</div>
+      ${paySlots.length===0?`<div style="color:var(--muted);font-size:11px">No artists booked yet.</div>`:`
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 18px">
+          ${paySlots.map(sl=>{
+            const ar=artists.find(a=>a.id===sl.artistId);
+            const payColor=sl.payment==='Paid'?'var(--green)':sl.payment==='Partial'?'var(--yellow)':sl.payment==='Waived'?'var(--muted)':'var(--red)';
+            return `<div class="pay-row">
+              <div>
+                <div class="pay-name">${ar?.name||'?'}</div>
+                <div style="font-size:10px;color:var(--muted)">${SLOT_DEFS[sl.lane]?.label||''}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="editable" onclick="openPerf('${currentNightId}','${sl.id}')">
+                  <span class="badge b-${(sl.payment||'unpaid').toLowerCase()}">${sl.payment||'Unpaid'}</span>
+                </div>
+                <div class="pay-amount">${sl.fee?'$'+sl.fee:'—'}</div>
+                <button class="btn btn-ghost btn-xs" onclick="openPerf('${currentNightId}','${sl.id}')">Edit</button>
+              </div>
+            </div>`;
+          }).join('')}
+          <div class="pay-total">
+            <span class="pay-total-label">Total Booked</span>
+            <span class="pay-total-val">$${totalFee.toLocaleString()}</span>
+          </div>
+          ${totalFee!==totalPaid?`<div style="display:flex;justify-content:space-between;margin-top:6px">
+            <span style="font-size:10px;color:var(--muted)">Paid so far</span>
+            <span style="font-size:13px;color:var(--green);font-weight:600">$${totalPaid.toLocaleString()}</span>
+          </div>`:''}
+        </div>
+      `}
+    </div>`;
+  }
+
+  // ─ Guest list
+  html+=`<div class="no-sec">
+    <div class="no-sec-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Guest List <span style="color:var(--muted);font-weight:400">(${totalGuests} total)</span></span>
+      <button class="btn btn-ghost btn-xs" onclick="showIntakeForm()">View Intake Form</button>
+    </div>
+    ${guests.length===0?`<div style="color:var(--muted);font-size:11px;margin-bottom:12px">No guests added yet.</div>`:`
+      <table class="gl-table">
+        <thead><tr><th>Name</th><th>Count</th><th>VIP</th><th>Added By</th><th>Notes</th>${canEdit()?'<th></th>':''}</tr></thead>
+        <tbody>
+          ${guests.map(g=>`<tr>
+            <td style="font-family:'Syne',sans-serif;font-weight:600">${g.name}</td>
+            <td>${g.count||1}</td>
+            <td>${g.vip?'⭐ VIP':''}</td>
+            <td style="color:var(--muted)">${g.addedBy||''}</td>
+            <td style="color:var(--muted)">${g.notes||''}</td>
+            ${canEdit()?`<td><button class="btn btn-ghost btn-xs" onclick="removeGuest('${g.id}')">✕</button></td>`:''}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    `}
+    ${canEdit()?`<div class="gl-add-row" style="margin-top:10px">
+      <input id="gl-name" placeholder="Guest name" style="flex:2">
+      <input id="gl-count" placeholder="# guests" type="number" min="1" style="max-width:80px">
+      <select id="gl-vip"><option value="">Regular</option><option value="1">⭐ VIP</option></select>
+      <input id="gl-added" placeholder="Added by">
+      <button class="btn btn-accent btn-sm" onclick="addGuest()">Add</button>
+    </div>`:''}
+  </div>`;
+
+  // ─ Intake form mock
+  html+=`<div class="no-sec" id="intake-section" style="display:none">
+    <div class="no-sec-title">Guest List Intake Form (Mock-up)</div>
+    <div class="intake-mock">
+      <div class="intake-title">Kashmir Guest List Request</div>
+      <div class="intake-sub">Submit your name to be added to the list for this night.</div>
+      <div class="intake-field"><label>Full Name</label><input placeholder="Your name"></div>
+      <div class="intake-field"><label>Number of Guests (including you)</label><input type="number" min="1" max="10" placeholder="1"></div>
+      <div class="intake-field"><label>Who invited you?</label><input placeholder="DJ name or staff member"></div>
+      <div class="intake-field"><label>Notes</label><input placeholder="Table request, accessibility needs…"></div>
+      <button class="btn btn-accent" style="width:100%">Submit Request</button>
+      <div class="intake-note">⚠ This is a mock-up. In production this will be a Google Form that feeds directly into this CRM automatically.</div>
+    </div>
+  </div>`;
+
+  // ─ Night notes
+  if(n.notes){
+    html+=`<div class="no-sec">
+      <div class="no-sec-title">Notes</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">${n.notes}</div>
+    </div>`;
+  }
+
+  document.getElementById('no-main').innerHTML=html;
+}
+
+function showIntakeForm(){
+  const el=document.getElementById('intake-section');
+  if(el) el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function renderLaneHTML(lane){
+  const sl=getSlotForLane(lane);
+  const def=SLOT_DEFS[lane];
+  const color=lane==='opener'?'var(--blue)':'var(--purple)';
+  let bodyHTML;
+  if(!sl){
+    bodyHTML=canEdit()
+      ?`<div class="lane-empty">Drag an artist here</div>`
+      :`<div class="lane-empty">TBD</div>`;
+  } else if(sl.isOpen){
+    bodyHTML=`<div class="open-lane-card">
+      <div style="font-size:22px;color:var(--yellow)">⬡</div>
+      <div style="flex:1"><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--yellow)">${sl.openNote||'Open Slot'}</div>
+      <div style="font-size:11px;color:rgba(251,191,36,.5);margin-top:2px">Needs to be filled</div></div>
+      ${canEdit()?`<button class="btn btn-ghost btn-sm" onclick="clearLane('${lane}')">Clear</button>`:''}
+    </div>`;
+  } else {
+    const ar=artists.find(a=>a.id===sl.artistId);
+    const payColor=sl.payment==='Paid'?'var(--green)':sl.payment==='Partial'?'var(--yellow)':sl.payment==='Waived'?'var(--muted)':'var(--red)';
+    bodyHTML=`<div class="artist-lane-card" ${canEdit()?`draggable="true" ondragstart="laneCardDragStart(event,'${lane}')" ondragend="dragId=null;dragFromLane=null"`:''}> 
+      <div style="flex:1">
+        <div class="alc-name">${ar?.name||'?'}</div>
+        ${ar?.repName?`<div class="alc-rep">Rep: ${ar.repName}</div>`:''}
+      </div>
+      <div class="alc-fields">
+        ${canSeePayments()?`
+        <div class="alc-field">
+          <label>Fee</label>
+          <div class="alc-field-val ${canEdit()?'editable':''}" onclick="${canEdit()?`openPerf('${currentNightId}','${sl.id}')`:''}">${sl.fee?'$'+sl.fee:'—'}</div>
+        </div>
+        <div class="alc-field">
+          <label>Payment</label>
+          <div class="alc-field-val" style="color:${payColor}"><span class="badge b-${(sl.payment||'unpaid').toLowerCase()}">${sl.payment||'Unpaid'}</span></div>
+        </div>`:''}
+        <div class="alc-field">
+          <span class="badge b-${(ar?.timeslot||'flexible').toLowerCase()}">${ar?.timeslot||''}</span>
+        </div>
+      </div>
+      ${canEdit()?`<button class="btn btn-ghost btn-sm" style="margin-left:8px;color:var(--red);border-color:var(--red-bg)" onclick="clearLane('${lane}')">✕</button>`:''}
+    </div>`;
+  }
+
+  const canDrop=canEdit()?`ondragover="laneOver(event,'${lane}')" ondragleave="laneLeave(event,'${lane}')" ondrop="laneDrop(event,'${lane}')"`:'' ;
+  return `<div class="lane-card" id="lane-${lane}" ${canDrop}>
+    <div class="lane-head">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="lane-tag" style="color:${color}">${def.label}</span>
+        <span class="lane-time">${def.start} – ${def.end}</span>
+      </div>
+      ${canEdit()?`<button class="lane-open-btn" style="background:none;border:1px dashed var(--border2);border-radius:5px;padding:4px 12px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--yellow)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'" onclick="setLaneOpen('${lane}')">Mark as Open</button>`:''}
+    </div>
+    <div class="lane-body">${bodyHTML}</div>
+  </div>`;
+}
+
+function renderLane(lane){
+  const el=document.getElementById('lane-'+lane);
+  if(!el)return;
+  el.outerHTML=renderLaneHTML(lane);
+}
+
+// ── Drag & Drop ──
+function laneCardDragStart(e,lane){
+  const sl=getSlotForLane(lane);
+  dragId=sl?.artistId||null;dragFromLane=lane;
+  e.dataTransfer.effectAllowed='move';
+}
+function laneOver(e,lane){
+  e.preventDefault();
+  document.getElementById('lane-'+lane)?.classList.add('drag-over');
+}
+function laneLeave(e,lane){
+  document.getElementById('lane-'+lane)?.classList.remove('drag-over');
+}
+function laneDrop(e,lane){
+  e.preventDefault();
+  document.getElementById('lane-'+lane)?.classList.remove('drag-over');
+  if(dragId===null)return;
+  if(dragFromLane&&dragFromLane!==lane){nightSlots=nightSlots.filter(s=>s.lane!==dragFromLane);}
+  nightSlots=nightSlots.filter(s=>s.lane!==lane);
+  const ar=artists.find(a=>a.id===dragId);
+  nightSlots.push({id:'sl'+sid++,lane,isOpen:false,artistId:dragId,fee:ar?.fee||'',payment:'Unpaid',rating:0,perfNote:''});
+  dragId=null;dragFromLane=null;
+  renderNightMain();renderUnsched();
+}
+function onSidebarDrag(e,aid){dragId=aid;dragFromLane=null;e.dataTransfer.effectAllowed='copy';}
+
+function clearLane(lane){
+  nightSlots=nightSlots.filter(s=>s.lane!==lane);
+  renderNightMain();renderUnsched();
+}
+function setLaneOpen(lane){
+  const note=prompt('Label for open slot:',SLOT_DEFS[lane].label+' needed');
+  if(note===null)return;
+  nightSlots=nightSlots.filter(s=>s.lane!==lane);
+  nightSlots.push({id:'sl'+sid++,lane,isOpen:true,openNote:note,artistId:null,fee:'',payment:'Unpaid',rating:0,perfNote:''});
+  renderNightMain();renderUnsched();
+}
+
+function renderUnsched(){
+  const placed=new Set(nightSlots.filter(s=>!s.isOpen&&s.artistId!==null).map(s=>s.artistId));
+  const q=(document.getElementById('unsched-search')?.value||'').toLowerCase();
+  const list=artists.filter(a=>!placed.has(a.id)&&(!q||a.name.toLowerCase().includes(q)||(a.repName||'').toLowerCase().includes(q)));
+  document.getElementById('unsched-count').textContent=list.length;
+  document.getElementById('unsched-list').innerHTML=list.length===0
+    ?`<div style="color:var(--muted);font-size:11px;text-align:center;padding:20px 8px">All slots filled!</div>`
+    :list.map(a=>`<div class="unsched-item" draggable="true" ondragstart="onSidebarDrag(event,${a.id})" ondragend="dragId=null">
+        <div class="ui-name">${a.name}</div>
+        <div class="ui-meta">${a.timeslot}${a.repName?' · '+a.repName:''}</div>
+      </div>`).join('');
+}
+
+// ── Guest list ──
+function addGuest(){
+  const n=nights.find(x=>x.id===currentNightId);if(!n)return;
+  const name=document.getElementById('gl-name').value.trim();if(!name)return;
+  if(!n.guests) n.guests=[];
+  n.guests.push({
+    id:'g'+gid++,
+    name,
+    count:parseInt(document.getElementById('gl-count').value)||1,
+    vip:!!document.getElementById('gl-vip').value,
+    addedBy:document.getElementById('gl-added').value.trim(),
+    notes:''
+  });
+  // update nightSlots reference and re-render
+  renderNightMain();renderUnsched();scheduleAutoSave();
+}
+function removeGuest(gId){
+  const n=nights.find(x=>x.id===currentNightId);if(!n)return;
+  n.guests=(n.guests||[]).filter(g=>g.id!==gId);
+  renderNightMain();scheduleAutoSave();
+}
+
+// ══════════════════════════════════════════════
+// PERFORMANCE / PAYMENT MODAL
+// ══════════════════════════════════════════════
+function openPerf(nId,slotId){
+  perfNightId=nId;perfSlotId=slotId;
+  // look in nightSlots first (overlay open), else in saved night
+  const sl=nightSlots.find(s=>s.id===slotId)||(nights.find(x=>x.id===nId)?.slots||[]).find(s=>s.id===slotId);
+  const ar=artists.find(a=>a.id===sl?.artistId);
+  const n=nights.find(x=>x.id===nId);
+  document.getElementById('pm-title').textContent=`${ar?.name||'?'} — ${n?.name||''}`;
+  document.getElementById('pm-fee').value=sl?.fee||'';
+  document.getElementById('pm-pay').value=sl?.payment||'Unpaid';
+  document.getElementById('pm-note').value=sl?.perfNote||'';
+  setRating(sl?.rating||0);
+  document.getElementById('perf-modal').classList.add('open');
+}
+function closePerfModal(){document.getElementById('perf-modal').classList.remove('open');}
+function setRating(v){
+  perfRating=v;
+  document.querySelectorAll('#pm-stars .star').forEach(s=>s.classList.toggle('on',parseInt(s.dataset.v)<=v));
+}
+function savePerfModal(){
+  // update nightSlots if overlay open
+  const slInSlots=nightSlots.find(s=>s.id===perfSlotId);
+  if(slInSlots){
+    slInSlots.fee=document.getElementById('pm-fee').value;
+    slInSlots.payment=document.getElementById('pm-pay').value;
+    slInSlots.rating=perfRating;
+    slInSlots.perfNote=document.getElementById('pm-note').value;
+  }
+  // also update saved night
+  const n=nights.find(x=>x.id===perfNightId);
+  const sl=n?.slots.find(s=>s.id===perfSlotId);
+  if(sl){
+    sl.fee=document.getElementById('pm-fee').value;
+    sl.payment=document.getElementById('pm-pay').value;
+    sl.rating=perfRating;
+    sl.perfNote=document.getElementById('pm-note').value;
+  }
+  closePerfModal();
+  renderNightMain();renderUnsched();
+  if(drawerAid!==null)_renderDrawer();
+  scheduleAutoSave();
+}
+
+// ══════════════════════════════════════════════
+// ROSTER
+// ══════════════════════════════════════════════
+function setFilter(type,val,el){
+  rFilters[type]=val;
+  el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');renderRoster();
+}
+function sortBy(col){
+  rSort.dir=rSort.col===col?rSort.dir*-1:1;rSort.col=col;renderRoster();
+}
+function renderRoster(){
+  const q=document.getElementById('roster-search').value.toLowerCase();
+  let data=artists.filter(a=>{
+    if(rFilters.status!=='all'&&a.status!==rFilters.status)return false;
+    if(rFilters.slot!=='all'&&a.timeslot!==rFilters.slot)return false;
+    if(q&&!a.name.toLowerCase().includes(q)&&!a.ig.toLowerCase().includes(q)&&!(a.repName||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  data.sort((a,b)=>{
+    const sa=artistStats(a.id),sb=artistStats(b.id);
+    const m={name:[a.name,b.name],timeslot:[a.timeslot,b.timeslot],status:[a.status,b.status],
+      lastPlayed:[sa.lastPlayed||'',sb.lastPlayed||''],timesPlayed:[sa.timesPlayed,sb.timesPlayed],totalPaid:[sa.totalPaid,sb.totalPaid]};
+    const[av,bv]=m[rSort.col]||[a.name,b.name];
+    return av<bv?-rSort.dir:av>bv?rSort.dir:0;
+  });
+  document.getElementById('roster-tbody').innerHTML=data.map(a=>{
+    const st=artistStats(a.id),hist=artistBookings(a.id);
+    const pips=Array.from({length:6},(_,i)=>`<span class="pip ${i<hist.length?'on':''}" title="${hist[i]?fmtDate(hist[i].date):''}"></span>`).join('');
+    return `<tr onclick="openDrawer(${a.id})">
+      <td class="col-name">${a.name}</td>
+      <td><span class="badge b-${a.timeslot.toLowerCase()}">${a.timeslot}</span></td>
+      <td><span class="badge b-${a.status.toLowerCase()}">${a.status}</span></td>
+      <td class="col-dim">${a.repName||'—'}</td>
+      <td class="col-dim">${a.owner?`<span class="badge b-owner">${a.owner}</span>`:'—'}</td>
+      <td><div class="pips">${hist.length>0?pips:'<span style="color:var(--muted2);font-size:10px">—</span>'}</div></td>
+      <td class="col-dim">${fmtDate(st.lastPlayed)}</td>
+      <td class="col-dim">${st.timesPlayed||'—'}</td>
+      <td class="col-dim" ${canSeePayments()?'':' style="display:none"'}>${st.totalPaid?'$'+st.totalPaid.toLocaleString():'—'}</td>
+      <td class="col-dim">${a.ig?`<a href="https://instagram.com/${a.ig.replace('@','')}" target="_blank" onclick="event.stopPropagation()" style="color:var(--muted);text-decoration:none">${a.ig}</a>`:'—'}</td>
+      <td class="col-dim">${a.email||a.phone||'—'}</td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--muted)">No artists match</td></tr>`;
+}
+
+// ── Artist drawer ──
+function openDrawer(aid){
+  drawerAid=aid;_renderDrawer();
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+function _renderDrawer(){
+  const a=artists.find(x=>x.id===drawerAid);
+  const st=artistStats(drawerAid);
+  const hist=artistBookings(drawerAid);
+  document.getElementById('drawer-name').textContent=a.name;
+  document.getElementById('drawer-badges').innerHTML=
+    `<span class="badge b-${a.timeslot.toLowerCase()}">${a.timeslot}</span>
+     <span class="badge b-${a.status.toLowerCase()}">${a.status}</span>
+     ${a.owner?`<span class="badge b-owner">${a.owner}</span>`:''}`;
+  document.getElementById('drawer-body').innerHTML=`
+    <div class="stat-pills">
+      <div class="stat-pill"><div class="sp-val">${st.timesPlayed}</div><div class="sp-label">Times Played</div></div>
+      <div class="stat-pill"><div class="sp-val">${fmtDate(st.lastPlayed)}</div><div class="sp-label">Last Played</div></div>
+      ${canSeePayments()?`<div class="stat-pill"><div class="sp-val">${st.totalPaid?'$'+st.totalPaid.toLocaleString():'—'}</div><div class="sp-label">Total Paid</div></div>`:''}
+    </div>
+    <div class="fsec">
+      <div class="fsec-title">Booking</div>
+      <div class="fgrid">
+        <div class="f"><label>Status</label>
+          <select id="d-status" ${!canEdit()?'disabled':''}>${['Prospect','Contacted','Negotiating','Confirmed','Cancelled'].map(s=>`<option${a.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
+        <div class="f"><label>Timeslot</label>
+          <select id="d-timeslot" ${!canEdit()?'disabled':''}>${['Headliner','Opener','Flexible','Unassigned'].map(s=>`<option${a.timeslot===s?' selected':''}>${s}</option>`).join('')}</select></div>
+        <div class="f"><label>Standard Fee ($)</label><input id="d-fee" value="${a.fee||''}" placeholder="0" ${!canEdit()?'disabled':''}></div>
+        <div class="f"><label>Contract</label>
+          <select id="d-contract" ${!canEdit()?'disabled':''}>${['N/A','Pending','Signed'].map(s=>`<option${a.contract===s?' selected':''}>${s}</option>`).join('')}</select></div>
+      </div>
+    </div>
+    <div class="fsec">
+      <div class="fsec-title">Representation</div>
+      <div class="fgrid">
+        <div class="f"><label>Rep / Agent Name</label><input id="d-rep-name" value="${a.repName||''}" placeholder="Name" ${!canEdit()?'disabled':''}></div>
+        <div class="f"><label>Rep Contact</label><input id="d-rep-contact" value="${a.repContact||''}" placeholder="Phone or email" ${!canEdit()?'disabled':''}></div>
+        <div class="f full"><label>Booked By (Owner)</label>
+          <select id="d-owner" ${!canEdit()?'disabled':''}><option value="">—</option>${['Griffin (BRIFFEY)','Andy (WOOLF)','Venue Staff','External'].map(s=>`<option${a.owner===s?' selected':''}>${s}</option>`).join('')}</select></div>
+      </div>
+    </div>
+    <div class="fsec">
+      <div class="fsec-title">Contact</div>
+      <div class="fgrid">
+        <div class="f"><label>IG Handle</label><input id="d-ig" value="${a.ig||''}" placeholder="@handle" ${!canEdit()?'disabled':''}></div>
+        <div class="f"><label>Phone</label><input id="d-phone" value="${a.phone||''}" placeholder="+1 000 000 0000" ${!canEdit()?'disabled':''}></div>
+        <div class="f full"><label>Email</label><input id="d-email" type="email" value="${a.email||''}" placeholder="artist@email.com" ${!canEdit()?'disabled':''}></div>
+      </div>
+    </div>
+    <div class="fsec">
+      <div class="fsec-title">Notes</div>
+      <div class="f full"><textarea id="d-notes" placeholder="Rider, vibe notes, anything relevant…" ${!canEdit()?'disabled':''}>${a.notes||''}</textarea></div>
+    </div>
+    <div class="fsec">
+      <div class="fsec-title">Play History (${hist.length})</div>
+      ${hist.length===0
+        ?`<div style="color:var(--muted);font-size:11px;text-align:center;padding:16px 0">No nights booked yet.</div>`
+        :`<table class="history-tbl">
+          <tr><th>Date</th><th>Night</th>${canSeePayments()?'<th>Fee</th><th>Payment</th>':''}<th>Rating</th><th></th></tr>
+          ${hist.map(h=>{
+            const payColor=h.payment==='Paid'?'var(--green)':h.payment==='Partial'?'var(--yellow)':h.payment==='Waived'?'var(--muted)':'var(--red)';
+            const stars=h.rating?'★'.repeat(h.rating)+'<span style="color:var(--border2)">'+'★'.repeat(5-h.rating)+'</span>':'<span style="color:var(--muted2)">—</span>';
+            return `<tr>
+              <td>${fmtDate(h.date)}</td>
+              <td>${h.nightName}</td>
+              ${canSeePayments()?`<td>${h.fee?'$'+Number(h.fee).toLocaleString():'—'}</td><td style="color:${payColor}">${h.payment}</td>`:''}
+              <td style="color:var(--accent)">${stars}</td>
+              <td>${canEdit()?`<button class="btn btn-ghost btn-xs" onclick="openPerf('${h.nId}','${h.slId}')">Edit</button>`:''}</td>
+            </tr>`;
+          }).join('')}
+          </table>`}
+    </div>`;
+}
+function closeDrawer(){
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+  drawerAid=null;
+}
+function saveDrawer(){
+  if(!canEdit())return closeDrawer();
+  const a=artists.find(x=>x.id===drawerAid);
+  a.status=document.getElementById('d-status').value;
+  a.timeslot=document.getElementById('d-timeslot').value;
+  a.fee=document.getElementById('d-fee').value;
+  a.contract=document.getElementById('d-contract').value;
+  a.repName=document.getElementById('d-rep-name').value;
+  a.repContact=document.getElementById('d-rep-contact').value;
+  a.owner=document.getElementById('d-owner').value;
+  a.ig=document.getElementById('d-ig').value;
+  a.phone=document.getElementById('d-phone').value;
+  a.email=document.getElementById('d-email').value;
+  a.notes=document.getElementById('d-notes').value;
+  closeDrawer();renderRoster();updateBadges();scheduleAutoSave();
+}
+async function deleteArtist(){
+  const a=artists.find(x=>x.id===drawerAid);
+  const ok=await confirmDialog('Delete Artist',`Remove "${a.name}"? This cannot be undone.`);
+  if(!ok)return;
+  artists=artists.filter(x=>x.id!==drawerAid);
+  closeDrawer();renderRoster();updateBadges();scheduleAutoSave();
+}
+function openNewArtist(){
+  const a={id:uid++,name:'New Artist',timeslot:'Flexible',status:'Prospect',ig:'',phone:'',email:'',fee:'',contract:'N/A',notes:'',repName:'',repContact:'',owner:''};
+  artists.push(a);renderRoster();updateBadges();openDrawer(a.id);
+}
+
+// ══════════════════════════════════════════════
+// TASKS
+// ══════════════════════════════════════════════
+function getOpenSlotTasks(){
+  const t=[];
+  nights.forEach(n=>n.slots.filter(s=>s.isOpen).forEach(sl=>{
+    const ld=sl.lane?SLOT_DEFS[sl.lane]:null;
+    t.push({id:`ost-${n.id}-${sl.id}`,title:`Fill slot: ${ld?ld.start+'–'+ld.end:'TBD'} — ${sl.openNote||'Open'}`,sub:`${n.name} · ${fmtDate(n.date)}`,type:'open-slot',done:false,nightId:n.id});
+  }));
+  return t;
+}
+function renderTasks(){
+  const all=[...getOpenSlotTasks(),...manualTasks];
+  const visible=showDone?all:all.filter(t=>!t.done);
+  const list=document.getElementById('tasks-list');
+  if(!visible.length){list.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:28px;margin-bottom:12px">◻</div>No open tasks!</div>`;return;}
+  list.innerHTML=visible.map(t=>`<div class="task-item ${t.done?'done':''}">
+    <div class="task-check" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div>
+    <div class="task-body"><div class="task-title">${t.title}</div>${t.sub?`<div class="task-sub">${t.sub}</div>`:''}</div>
+    <span class="badge ${t.type==='open-slot'?'b-open':'b-contacted'}" style="margin-left:auto">${t.type==='open-slot'?'Open Slot':'Task'}</span>
+    ${t.nightId?`<button class="btn btn-ghost btn-sm" onclick="openNightOverlay('${t.nightId}')">Go →</button>`:''}
+  </div>`).join('');
+}
+function toggleTask(id){const t=manualTasks.find(x=>x.id==id);if(t){t.done=!t.done;renderTasks();updateBadges();}}
+function toggleDone(btn){showDone=!showDone;btn.textContent=showDone?'Hide Done':'Show Done';renderTasks();}
+
+// ══════════════════════════════════════════════
+// CSV EXPORT
+// ══════════════════════════════════════════════
+function exportCSV(){
+  const hdrs=['Name','Timeslot','Status','Rep','Rep Contact','Owner','IG','Phone','Email','Fee','Contract','Times Played','Last Played','Total Paid','Notes'];
+  const rows=artists.map(a=>{
+    const st=artistStats(a.id);
+    return[a.name,a.timeslot,a.status,a.repName||'',a.repContact||'',a.owner||'',a.ig,a.phone,a.email,a.fee,a.contract,
+      st.timesPlayed,st.lastPlayed||'',st.totalPaid||'',a.notes
+    ].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
+  });
+  const blob=new Blob([[hdrs.join(','),...rows].join('\n')],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const el=document.createElement('a');el.href=url;el.download='Kashmir_CRM.csv';el.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════
+// SEED DATA
+// ══════════════════════════════════════════════
+function seedDefaultData(){
+  artists=RAW_ARTISTS.map(r=>({
+    id:uid++,name:r[0],timeslot:r[1],
+    status:'Prospect',ig:'',phone:'',email:'',
+    fee:'',contract:'N/A',notes:'',
+    repName:'',repContact:'',owner:''
+  }));
+  // set a few owners for demo
+  artists[18].owner='Griffin (BRIFFEY)'; // BRIFFEY
+  artists[24].owner='Andy (WOOLF)'; // Alex Wolf
+  artists[1].owner='Andy (WOOLF)'; // Pinto
+  artists[3].owner='Griffin (BRIFFEY)'; // Deep State Disco
+  artists[0].repName='Self'; artists[18].repName='Self';
+
+  const past=[
+    {name:'Kashmir Night — Nov 2025',date:'2025-11-15',b:[[0,600,'Paid',5,'Great energy'],[9,800,'Paid',5,'Crowd went crazy']]},
+    {name:'Kashmir Night — Dec 2025',date:'2025-12-20',b:[[1,700,'Paid',4,''],[3,900,'Paid',5,'Best set of the year']]},
+    {name:'Kashmir Night — Jan 2026',date:'2026-01-17',b:[[0,650,'Paid',5,''],[18,550,'Paid',4,'']]},
+    {name:'Kashmir Night — Feb 2026',date:'2026-02-14',b:[[9,850,'Paid',5,'Valentine crowd loved it'],[1,750,'Unpaid',5,'']]},
+  ];
+  past.forEach(p=>{
+    const n={id:'n'+nid++,name:p.name,date:p.date,status:'past',notes:'',cover:'',slots:[],guests:[]};
+    p.b.forEach(([aid,fee,payment,rating,note],i)=>{
+      n.slots.push({id:'sl'+sid++,lane:i===0?'opener':'headliner',isOpen:false,artistId:aid,fee:String(fee),payment,rating,perfNote:note});
+    });
+    // seed some guests
+    n.guests=[
+      {id:'g'+gid++,name:'Jake Martinez',count:3,vip:false,addedBy:'Griffin',notes:''},
+      {id:'g'+gid++,name:'Sarah Chen',count:2,vip:true,addedBy:'Andy',notes:'VIP table'},
+    ];
+    nights.push(n);
+  });
+  nights.push({
+    id:'n'+nid++,name:'Kashmir Night — Mar 2026',date:'2026-03-14',status:'upcoming',notes:'',cover:'20',
+    slots:[
+      {id:'sl'+sid++,lane:'opener',isOpen:true,openNote:'Opener needed',artistId:null,fee:'',payment:'Unpaid',rating:0,perfNote:''},
+      {id:'sl'+sid++,lane:'headliner',isOpen:false,artistId:1,fee:'700',payment:'Unpaid',rating:0,perfNote:''},
+    ],
+    guests:[{id:'g'+gid++,name:'Marcus Johnson',count:4,vip:false,addedBy:'Griffin',notes:''}]
+  });
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+(function init(){
+  const saved=localStorage.getItem(SAVE_KEY);
+  if(saved){
+    try{
+      const p=JSON.parse(saved);
+      artists=p.artists||[];nights=p.nights||[];
+      uid=p.uid??uid;nid=p.nid??nid;sid=p.sid??sid;gid=p.gid??gid;
+      manualTasks=p.manualTasks||[];
+      if(!artists.length&&!nights.length) throw new Error('empty');
+      showSaveStatus('Restored from last session');
+    }catch(e){seedDefaultData();}
+  } else {
+    seedDefaultData();
+  }
+  renderDashboard();renderNights();renderRoster();renderTasks();updateBadges();
+})();
+</script>
+</body>
+</html>
